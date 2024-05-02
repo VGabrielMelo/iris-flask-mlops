@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário de Entrada</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+        }
+        .input-section, .history-section {
+            width: 45%;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 10px;
+        }
+        .input-section h2, .history-section h2 {
+            margin-top: 0;
+        }
+        form {
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        input[type="number"] {
+            width: calc(100% - 22px);
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .error {
+            color: red;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        #predictionResult {
+            display: none;
+            margin-top: 20px;
+        }
+        #predictionHistory {
+            list-style-type: none;
+            padding: 0;
+            text-align: left;
+        }
+        #predictionHistory li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="input-section">
+            <h2>Formulário de Entrada</h2>
+            <form id="inputForm">
+                <label for="sepal_length">Comprimento da Sépala (cm):</label>
+                <input type="number" step="0.1" id="sepal_length" name="sepal_length" required><br>
+                <span id="sepal_length_error" class="error"></span>
+
+                <label for="sepal_width">Largura da Sépala (cm):</label>
+                <input type="number" step="0.1" id="sepal_width" name="sepal_width" required><br>
+                <span id="sepal_width_error" class="error"></span>
+
+                <label for="petal_length">Comprimento da Pétala (cm):</label>
+                <input type="number" step="0.1" id="petal_length" name="petal_length" required><br>
+                <span id="petal_length_error" class="error"></span>
+
+                <label for="petal_width">Largura da Pétala (cm):</label>
+                <input type="number" step="0.1" id="petal_width" name="petal_width" required><br>
+                <span id="petal_width_error" class="error"></span>
+
+                <button type="button" onclick="validateForm()">Prever</button>
+            </form>
+
+            <div id="predictionResult">
+                <h2>Resultado da Previsão</h2>
+                <p id="prediction"></p>
+            </div>
+        </div>
+        
+        <div class="history-section">
+            <h2>Histórico de Previsões</h2>
+            <ul id="predictionHistory"></ul>
+        </div>
+    </div>
+
+    <script>
+        var predictionHistory = [];
+
+        function validateForm() {
+            var sepal_length = document.getElementById("sepal_length").value.trim();
+            var sepal_width = document.getElementById("sepal_width").value.trim();
+            var petal_length = document.getElementById("petal_length").value.trim();
+            var petal_width = document.getElementById("petal_width").value.trim();
+
+            var sepal_length_error = document.getElementById("sepal_length_error");
+            var sepal_width_error = document.getElementById("sepal_width_error");
+            var petal_length_error = document.getElementById("petal_length_error");
+            var petal_width_error = document.getElementById("petal_width_error");
+
+            sepal_length_error.innerText = "";
+            sepal_width_error.innerText = "";
+            petal_length_error.innerText = "";
+            petal_width_error.innerText = "";
+
+            var isValid = true;
+
+            if (sepal_length === "") {
+                sepal_length_error.innerText = "Por favor, insira o comprimento da sépala.";
+                isValid = false;
+            }
+
+            if (sepal_width === "") {
+                sepal_width_error.innerText = "Por favor, insira a largura da sépala.";
+                isValid = false;
+            }
+
+            if (petal_length === "") {
+                petal_length_error.innerText = "Por favor, insira o comprimento da pétala.";
+                isValid = false;
+            }
+
+            if (petal_width === "") {
+                petal_width_error.innerText = "Por favor, insira a largura da pétala.";
+                isValid = false;
+            }
+
+            if (isValid) {
+                predict();
+            }
+        }
+
+        function predict() {
+            var form = document.getElementById("inputForm");
+            var formData = new FormData(form);
+
+            fetch('/predict', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if ('prediction' in data) {
+                    var prediction = data.prediction;
+                    var sepal_length = document.getElementById("sepal_length").value.trim();
+                    var sepal_width = document.getElementById("sepal_width").value.trim();
+                    var sepal_length = document.getElementById("sepal_length").value.trim();
+                    var sepal_width = document.getElementById("sepal_width").value.trim();
+                    var petal_length = document.getElementById("petal_length").value.trim();
+                    var petal_width = document.getElementById("petal_width").value.trim();
+
+                    predictionHistory.push({
+                        sepal_length: sepal_length,
+                        sepal_width: sepal_width,
+                        petal_length: petal_length,
+                        petal_width: petal_width,
+                        prediction: prediction
+                    });
+                    updatePredictionHistory();
+                    document.getElementById("predictionResult").style.display = "block";
+                    document.getElementById("prediction").innerText = "Previsão: " + prediction;
+                } else if ('error' in data) {
+                    console.error('Erro:', data.error);
+                } else {
+                    console.error('Resposta desconhecida:', data);
+                }
+            })
+            .catch(error => console.error('Erro:', error));
+        }
+
+        function updatePredictionHistory() {
+            var historyList = document.getElementById("predictionHistory");
+            historyList.innerHTML = "";
+            predictionHistory.forEach(function(item) {
+                var listItem = document.createElement("li");
+                listItem.innerText = `Comprimento da Sépala: ${item.sepal_length} cm / Largura da Sépala: ${item.sepal_width} cm / Comprimento da Pétala: ${item.petal_length} cm / Largura da Pétala: ${item.petal_width} cm / Resultado: ${item.prediction}`;
+                historyList.appendChild(listItem);
+            });
+        }
+    </script>
+</body>
+</html>
